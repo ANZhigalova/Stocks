@@ -32,6 +32,7 @@ public class StocksCount {
     double r;
     double S_0;
     double B_0;
+    double B_N;
     double T;
     int N ;
     //double a = 0.3, b = 0.4, r = 0.1, T = 110, S_0 = 100, B_0 = 10;
@@ -107,10 +108,10 @@ public class StocksCount {
         return result;
     }
 
-    public static double	betta(double B_0, double T, double r, int N, int n, double a, double b, double S)
+    public static double	betta(double B_0, double B_N, double T, double r, int N, int n, double a, double b, double S)
     {
         double p = (r - a) / (b-a);
-        double result = Fn(S, a, b, N-(n-1), T, p) / B_0 - pow(1 + r, -(N - n)) *
+        double result = Fn(S, a, b, N-(n-1), T, p) / B_N - pow(1 + r, -(N - n)) *
                 ( Fn(S * (1 + b), a, b, N - n, T, p) - Fn(S * (1 + a) , b, a, N-n, T, p) ) / (B_0 * (b - a));
         return result;
     }

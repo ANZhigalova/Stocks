@@ -12,7 +12,6 @@ public class MainWindow extends JFrame {
     static final Dimension MIN_FRAME_SIZE = new Dimension(600, 500);
     private int i = 0;
     private double Gamma,Betta;
-    private double NextGamma,NextBetta;
 
     public MainWindow() {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -39,6 +38,7 @@ public class MainWindow extends JFrame {
         JTextField NField = new JTextField(Integer.toString(2),10);
         JButton input = new JButton("Рассчитать оптимальную стоимость");
         JButton start = new JButton("Следующий шаг");
+        start.setEnabled(false);
         JLabel step = new JLabel("Шаг:");
         JLabel stepField = new JLabel("0");
         JLabel gammaLabel = new JLabel("Количество акций:");
@@ -281,7 +281,9 @@ public class MainWindow extends JFrame {
         pack();
 
         StocksCount SC = new StocksCount();
-        input.addActionListener(new ActionListener() {
+//        /SC.B_N=0.0;
+
+    input.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 SC.S_0 = Double.parseDouble(SField.getText());
@@ -294,8 +296,9 @@ public class MainWindow extends JFrame {
                 CField.setText( ""+SC.getC_n(SC.S_0,SC.a,SC.b,SC.N ,SC.T));
                 nextSField.setText(SField.getText());
                 nextBField.setText(BField.getText());
+                SC.B_N = SC.B_0*pow(1+SC.r,SC.N);
                 Gamma = SC.gamma(SC.T,SC.r,SC.N,i+1, -SC.a,SC.b,SC.S_0);
-                Betta = SC.betta(SC.B_0,SC.T,SC.r,SC.N,i+1,-SC.a,SC.b,SC.S_0);
+                Betta = SC.betta(SC.B_0, SC.B_N ,SC.T,SC.r,SC.N,i+1,-SC.a,SC.b,SC.S_0);
             }
         });
 
@@ -304,10 +307,12 @@ public class MainWindow extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if(i > 0){
                     Gamma = SC.gamma(SC.T,SC.r,SC.N,i+1, -SC.a,SC.b,SC.S_0);
-                    Betta = SC.betta(SC.B_0,SC.T,SC.r,SC.N,i+1,-SC.a,SC.b,SC.S_0);
+                    Betta = SC.betta(SC.B_0, SC.B_N, SC.T,SC.r,SC.N,i+1,-SC.a,SC.b,SC.S_0);
                 }
                 SC.S_0 = SC.S_0 * (1 + SC.b);
                 SC.B_0 = SC.B_0 * (1 + SC.r);
+                reduce.setEnabled(false);
+                start.setEnabled(true);
             }
         });
         reduce.addActionListener(new ActionListener() {
@@ -315,16 +320,24 @@ public class MainWindow extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if(i > 0){
                     Gamma = SC.gamma(SC.T,SC.r,SC.N,i+1, -SC.a,SC.b,SC.S_0);
-                    Betta = SC.betta(SC.B_0,SC.T,SC.r,SC.N,i+1,-SC.a,SC.b,SC.S_0);
+                    Betta = SC.betta(SC.B_0,SC.B_N ,SC.T,SC.r,SC.N,i+1,-SC.a,SC.b,SC.S_0);
                 }
                 SC.S_0 = SC.S_0 * (1 - SC.a);
                 SC.B_0 = SC.B_0 * (1 + SC.r);
+                increase.setEnabled(false);
+                start.setEnabled(true);
             }
         });
+
+
 
         start.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (reduce.getSelectedObjects() == null || increase.getSelectedObjects() == null ){
+                    start.setEnabled(false);}
+                increase.setEnabled(true);
+                reduce.setEnabled(true);
                 increase.setSelected(false);
                 reduce.setSelected(false);
                 nextSField.setText(""+ SC.S_0);
@@ -334,11 +347,17 @@ public class MainWindow extends JFrame {
                 betta.setText(""+Betta);
                 i++;
                 if(i == SC.N || (Gamma == 0 & Betta == 0)  ){
+                    double cap = Math.round(Betta*SC.B_0+Gamma*SC.S_0);
+                    double f = max(SC.S_0-SC.T,0.0);
+                    double diff = (cap - f) * 100;
                     start.setText("Стоп!");
-                    capIn.setText(Double.toString(Betta*SC.B_0+Gamma*SC.S_0));
-                    ForPayIn.setText(Double.toString(max(SC.S_0-SC.T,0.0)));
-                    totalIn.setText(Double.toString(Betta*SC.B_0+Gamma*SC.S_0-max(SC.S_0-SC.T,0.0)));
+                    capIn.setText(String.valueOf(cap));
+                    ForPayIn.setText(String.valueOf(f));
+                    totalIn.setText(String.valueOf(Math.round(diff) / 100.0));
+                    start.setEnabled(false);
+
                 }
+
             }
         });
     }
