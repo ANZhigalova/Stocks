@@ -31,7 +31,7 @@ public class MainWindow extends JFrame {
         JLabel nextBField = new JLabel("0");
         JTextField SField = new JTextField(Double.toString(100),10);
         JTextField BField = new JTextField(Double.toString(10),10);
-        JTextField aField = new JTextField(Double.toString(0.3),10);
+        JTextField aField = new JTextField(Double.toString(-0.3),10);
         JTextField bField = new JTextField(Double.toString(0.4),10);
         JTextField rField = new JTextField(Double.toString(0.1),10);
         JTextField TField = new JTextField(Double.toString(110),10);
@@ -288,29 +288,32 @@ public class MainWindow extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 SC.S_0 = Double.parseDouble(SField.getText());
                 SC.B_0 = Double.parseDouble(BField.getText());
-                SC.a = abs(Double.parseDouble(aField.getText()));
+                SC.a = Double.parseDouble(aField.getText());
                 SC.b= Double.parseDouble(bField.getText());
                 SC.r = Double.parseDouble(rField.getText());
                 SC.T = Double.parseDouble(TField.getText());
                 SC.N = Integer.parseInt(NField.getText());
-                CField.setText( ""+SC.getC_n(SC.S_0,SC.a,SC.b,SC.N ,SC.T));
+                CField.setText( "" + SC.getC_n(SC.S_0,SC.a,SC.b,SC.N ,SC.T));
                 nextSField.setText(SField.getText());
                 nextBField.setText(BField.getText());
-                SC.B_N = SC.B_0*pow(1+SC.r,SC.N);
-                Gamma = SC.gamma(SC.T,SC.r,SC.N,i+1, -SC.a,SC.b,SC.S_0);
-                Betta = SC.betta(SC.B_0, SC.B_N ,SC.T,SC.r,SC.N,i+1,-SC.a,SC.b,SC.S_0);
+                SC.B_N = SC.B_0 * pow(1+SC.r,SC.N);
+                Gamma = SC.gamma(SC.T, SC.r, SC.N,i+1, SC.a, SC.b, SC.S_0);
+                Betta = SC.betta(SC.B_0, SC.B_N ,SC.T, SC.r, SC.N,i+1, SC.a, SC.b, SC.S_0);
+                gamma.setText(Double.toString(Gamma));
+                betta.setText(Double.toString(Betta));
+                //i++;
             }
         });
 
         increase.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(i > 0){
-                    Gamma = SC.gamma(SC.T,SC.r,SC.N,i+1, -SC.a,SC.b,SC.S_0);
-                    Betta = SC.betta(SC.B_0, SC.B_N, SC.T,SC.r,SC.N,i+1,-SC.a,SC.b,SC.S_0);
-                }
-                SC.S_0 = SC.S_0 * (1 + SC.b);
-                SC.B_0 = SC.B_0 * (1 + SC.r);
+//                if(i > 0){
+//                    Gamma = SC.gamma(SC.T, SC.r,SC.N,i+1, -SC.a, SC.b, SC.S_0);
+//                    Betta = SC.betta(SC.B_0, SC.B_N, SC.T,SC.r,SC.N,i+1,-SC.a,SC.b,SC.S_0);
+//                }
+//                SC.S_0 = SC.S_0 * (1 + SC.b);
+//                SC.B_0 = SC.B_0 * (1 + SC.r);
                 reduce.setEnabled(false);
                 start.setEnabled(true);
             }
@@ -318,24 +321,30 @@ public class MainWindow extends JFrame {
         reduce.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(i > 0){
-                    Gamma = SC.gamma(SC.T,SC.r,SC.N,i+1, -SC.a,SC.b,SC.S_0);
-                    Betta = SC.betta(SC.B_0,SC.B_N ,SC.T,SC.r,SC.N,i+1,-SC.a,SC.b,SC.S_0);
-                }
-                SC.S_0 = SC.S_0 * (1 - SC.a);
-                SC.B_0 = SC.B_0 * (1 + SC.r);
+//                if(i > 0){
+//                    Gamma = SC.gamma(SC.T,SC.r,SC.N,i+1, -SC.a,SC.b,SC.S_0);
+//                    Betta = SC.betta(SC.B_0,SC.B_N ,SC.T,SC.r,SC.N,i+1,-SC.a,SC.b,SC.S_0);
+//                }
+
                 increase.setEnabled(false);
                 start.setEnabled(true);
             }
         });
-
-
 
         start.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (reduce.getSelectedObjects() == null || increase.getSelectedObjects() == null ){
                     start.setEnabled(false);}
+                if(increase.getSelectedObjects() != null){
+                    SC.S_0 = SC.S_0 * (1 + SC.b);
+                    SC.B_0 = SC.B_0 * (1 + SC.r);
+                }
+                if(reduce.getSelectedObjects() != null){
+                    SC.S_0 = SC.S_0 * (1 + SC.a);
+                    SC.B_0 = SC.B_0 * (1 + SC.r);
+                }
+
                 increase.setEnabled(true);
                 reduce.setEnabled(true);
                 increase.setSelected(false);
@@ -343,10 +352,14 @@ public class MainWindow extends JFrame {
                 nextSField.setText(""+ SC.S_0);
                 nextBField.setText("" + SC.B_0);
                 stepField.setText(Integer.toString(i+1));
+                i++;
+                Gamma = SC.gamma(SC.T,SC.r,SC.N,i+1, SC.a,SC.b,SC.S_0);
+                Betta = SC.betta(SC.B_0,SC.B_N ,SC.T,SC.r,SC.N,i+1,SC.a,SC.b,SC.S_0);
                 gamma.setText(""+Gamma);
                 betta.setText(""+Betta);
-                i++;
                 if(i == SC.N || (Gamma == 0 & Betta == 0)  ){
+                    gamma.setText("0");
+                    betta.setText("0");
                     double cap = Math.round(Betta*SC.B_0+Gamma*SC.S_0);
                     double f = max(SC.S_0-SC.T,0.0);
                     double diff = (cap - f) * 100;
@@ -355,9 +368,7 @@ public class MainWindow extends JFrame {
                     ForPayIn.setText(String.valueOf(f));
                     totalIn.setText(String.valueOf(Math.round(diff) / 100.0));
                     start.setEnabled(false);
-
                 }
-
             }
         });
     }
